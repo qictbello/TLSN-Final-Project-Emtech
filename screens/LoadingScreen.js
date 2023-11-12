@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Image } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Circle } from "react-native-maps";
 import * as Location from "expo-location";
 import { StyleSheet, Text, View, Pressable, Modal } from "react-native";
 import Budget from "../components/Budget";
@@ -13,6 +13,7 @@ const LoadingScreen = () => {
   const [groupContainer3Visible, setGroupContainer3Visible] = useState(false);
   const [groupContainer4Visible, setGroupContainer4Visible] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [radius, setRadius] = useState(1000); // Initial radius in meters
 
   const openGroupContainer4 = useCallback(() => {
     setGroupContainer4Visible(true);
@@ -36,6 +37,10 @@ const LoadingScreen = () => {
 
   const closeGroupContainer3 = useCallback(() => {
     setGroupContainer3Visible(false);
+  }, []);
+
+  const handleRadiusApply = useCallback((newRadius) => {
+    setRadius(newRadius * 1000); // Convert km to meters
   }, []);
 
   useEffect(() => {
@@ -72,6 +77,18 @@ const LoadingScreen = () => {
               }}
               title="Your Location"
               description="You are here"
+            />
+          )}
+          {userLocation && (
+            <Circle
+              center={{
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+              }}
+              radius={radius}
+              strokeWidth={1}
+              strokeColor={"#FF4317"}
+              fillColor={"rgba(255, 67, 23, 0.2)"}
             />
           )}
         </MapView>
@@ -149,7 +166,7 @@ const LoadingScreen = () => {
             style={styles.groupContainer3Bg}
             onPress={closeGroupContainer3}
           />
-          <AdvancedRadius onClose={closeGroupContainer3} />
+          <AdvancedRadius onClose={closeGroupContainer3} onApply={handleRadiusApply} />
         </View>
       </Modal>
     </>

@@ -1,13 +1,20 @@
 import React, { useState } from "react";
-import { View, StyleSheet, Text, Slider } from "react-native";
-import { Image } from "expo-image";
+import { View, StyleSheet, Text, Pressable } from "react-native";
+import Slider from "@react-native-community/slider";
+import { Image } from "react-native";
 import { Color, FontFamily, Border, FontSize, Padding } from "../GlobalStyles";
 
-const AdvancedRadius = ({ onClose }) => {
+const AdvancedRadius = ({ onClose, onApply }) => {
   const [distance, setDistance] = useState(1); // Initial distance value
 
   const handleSliderChange = (value) => {
     setDistance(value);
+  };
+
+  const handleApplyPress = () => {
+    // Pass the selected distance to the parent component
+    onApply(distance);
+    onClose(); // Close the modal
   };
 
   return (
@@ -29,9 +36,9 @@ const AdvancedRadius = ({ onClose }) => {
           maximumTrackTintColor="#E0E0E0"
           thumbTintColor="#FF4317"
         />
-        <View style={styles.button}>
+        <Pressable style={styles.button} onPress={handleApplyPress}>
           <Text style={styles.title}>Apply</Text>
-        </View>
+        </Pressable>
       </View>
       <View style={[styles.rectangleParent, styles.component1ChildPosition]}>
         <Image
@@ -285,6 +292,28 @@ const styles = StyleSheet.create({
     height: 10,
     marginTop: 60,
     left: 10,
+  },
+  button: {
+    top: 100,
+    left: 19,
+    borderRadius: Border.br_xl,
+    shadowColor: "rgba(190, 120, 103, 0.2)",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowRadius: 20,
+    elevation: 20,
+    shadowOpacity: 1,
+    width: 339,
+    height: 46,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Padding.p_13xl,
+    paddingVertical: Padding.p_xs,
+    backgroundColor: Color.colorOrangered,
+    position: "absolute",
   },
 });
 
