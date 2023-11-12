@@ -1,15 +1,18 @@
-import React, { useState, useCallback } from "react";
-import { Image } from "expo-image";
+import React, { useState, useCallback, useEffect } from "react";
+import { Image } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import * as Location from "expo-location";
 import { StyleSheet, Text, View, Pressable, Modal } from "react-native";
 import Budget from "../components/Budget";
 import AdvancedRadius from "../components/AdvancedRadius";
-import { Color, FontFamily } from "../GlobalStyles";
 import Cuisine from "../components/Cuisine";
+import { Color, FontFamily } from "../GlobalStyles";
 
 const LoadingScreen = () => {
   const [groupContainer2Visible, setGroupContainer2Visible] = useState(false);
   const [groupContainer3Visible, setGroupContainer3Visible] = useState(false);
   const [groupContainer4Visible, setGroupContainer4Visible] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
 
   const openGroupContainer4 = useCallback(() => {
     setGroupContainer4Visible(true);
@@ -35,9 +38,44 @@ const LoadingScreen = () => {
     setGroupContainer3Visible(false);
   }, []);
 
+  useEffect(() => {
+    // Get user's current location
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.error("Permission to access location was denied");
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setUserLocation(location.coords);
+    })();
+  }, []);
+
   return (
     <>
       <View style={styles.loadingScreen}>
+        <MapView
+          style={{ flex: 1, zIndex: 0 }}
+          initialRegion={{
+            latitude: userLocation?.latitude || 0,
+            longitude: userLocation?.longitude || 0,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        >
+          {userLocation && (
+            <Marker
+              coordinate={{
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+              }}
+              title="Your Location"
+              description="You are here"
+            />
+          )}
+        </MapView>
+
         <View style={[styles.groupParent, styles.parentPosition]}>
           <View style={[styles.rectangleParent, styles.parentPosition]}>
             <Image
@@ -77,22 +115,20 @@ const LoadingScreen = () => {
             <Text style={[styles.grocery, styles.orderTypo]}>Advanced</Text>
           </Pressable>
         </View>
-        <Pressable
-            onPress={openGroupContainer4}>
-        <Image
-          style={styles.loadingScreenChild}
-          contentFit="cover"
-          source={require("../assets/group-36529.png")}
-        />
+
+        <Pressable onPress={openGroupContainer4} style={styles.group4Button}>
+          <Image
+            style={styles.loadingScreenChild}
+            contentFit="cover"
+            source={require("../assets/group-36529.png")}
+          />
         </Pressable>
       </View>
 
       <Modal animationType="fade" transparent visible={groupContainer4Visible}>
         <View style={styles.groupContainer4Overlay}>
-          <Pressable
-            onPress={closeGroupContainer4}
-          >
-          <Cuisine onClose={closeGroupContainer4} />
+          <Pressable onPress={closeGroupContainer4}>
+            <Cuisine onClose={closeGroupContainer4} />
           </Pressable>
         </View>
       </Modal>
@@ -205,6 +241,7 @@ const styles = StyleSheet.create({
   groupContainer4Overlay: {
     flex: 1,
     alignItems: "center",
+    marginTop: -35,
     backgroundColor: "rgba(113, 113, 113, 0.3)",
   },
   groupContainer2Bg: {
@@ -229,7 +266,7 @@ const styles = StyleSheet.create({
   groupContainer3Overlay: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-end", // Add this line to align at the bottom
+    justifyContent: "flex-end",
     backgroundColor: "rgba(113, 113, 113, 0.3)",
   },
   groupContainer3Bg: {
@@ -270,6 +307,14 @@ const styles = StyleSheet.create({
     height: 812,
     overflow: "hidden",
     width: "100%",
+  },
+  group4Button: {
+    position: 'absolute',
+    top: -5,
+    left: 7.5,
+    width: 375,
+    height: 56,
+    zIndex: 1,
   },
 });
 
