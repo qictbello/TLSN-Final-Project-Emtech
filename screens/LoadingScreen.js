@@ -2,11 +2,13 @@ import React, { useState, useCallback, useEffect } from "react";
 import { Image } from "react-native";
 import MapView, { Marker, Circle } from "react-native-maps";
 import * as Location from "expo-location";
+import axios from "axios";
 import { StyleSheet, Text, View, Pressable, Modal } from "react-native";
 import Budget from "../components/Budget";
 import AdvancedRadius from "../components/AdvancedRadius";
 import Cuisine from "../components/Cuisine";
 import { Color, FontFamily } from "../GlobalStyles";
+import Config from 'react-native-config';
 
 const LoadingScreen = () => {
   const [groupContainer2Visible, setGroupContainer2Visible] = useState(false);
@@ -14,6 +16,10 @@ const LoadingScreen = () => {
   const [groupContainer4Visible, setGroupContainer4Visible] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [radius, setRadius] = useState(1000); // Initial radius in meters
+  const [nearbyRestaurants, setNearbyRestaurants] = useState([]);
+
+  const apiKey = "AIzaSyDddbqZ2peQJYj1KTQJaUhyna4rfBmxtO0";
+  const placesApiUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
 
   const openGroupContainer4 = useCallback(() => {
     setGroupContainer4Visible(true);
@@ -43,6 +49,25 @@ const LoadingScreen = () => {
     setRadius(newRadius * 1000); // Convert km to meters
   }, []);
 
+  const fetchNearbyRestaurants = async (userLocation, radius) => {
+    try {
+      const response = await axios.get(placesApiUrl, {
+        params: {
+          location: `${userLocation.latitude},${userLocation.longitude}`,
+          radius: radius,
+          type: 'restaurant',
+          key: apiKey,
+        },
+      });
+
+      const restaurants = response.data.results;
+      setNearbyRestaurants(restaurants);
+    } catch (error) {
+      console.error('Error fetching nearby restaurants:', error.message);
+      setNearbyRestaurants([]);
+    }
+  };
+
   useEffect(() => {
     // Get user's current location
     (async () => {
@@ -54,8 +79,11 @@ const LoadingScreen = () => {
 
       let location = await Location.getCurrentPositionAsync({});
       setUserLocation(location.coords);
+
+      // Fetch nearby restaurants
+      await fetchNearbyRestaurants(location.coords, radius);
     })();
-  }, []);
+  }, [radius]);
 
   return (
     <>
@@ -91,6 +119,19 @@ const LoadingScreen = () => {
               fillColor={"rgba(255, 67, 23, 0.2)"}
             />
           )}
+
+          {/* Display nearby restaurants as markers on the map */}
+          {nearbyRestaurants.map((restaurant) => (
+            <Marker
+              key={restaurant.place_id}
+              coordinate={{
+                latitude: restaurant.geometry.location.lat,
+                longitude: restaurant.geometry.location.lng,
+              }}
+              title={restaurant.name}
+              description={restaurant.vicinity}
+            />
+          ))}
         </MapView>
 
         <View style={[styles.groupParent, styles.parentPosition]}>
