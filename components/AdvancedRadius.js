@@ -1,9 +1,15 @@
-import * as React from "react";
-import { View, StyleSheet, Text } from "react-native";
+import React, { useState } from "react";
+import { View, StyleSheet, Text, Slider } from "react-native";
 import { Image } from "expo-image";
 import { Color, FontFamily, Border, FontSize, Padding } from "../GlobalStyles";
 
 const AdvancedRadius = ({ onClose }) => {
+  const [distance, setDistance] = useState(1); // Initial distance value
+
+  const handleSliderChange = (value) => {
+    setDistance(value);
+  };
+
   return (
     <View style={styles.advancedRadius}>
       <View style={styles.advancedRadius1}>
@@ -11,18 +17,20 @@ const AdvancedRadius = ({ onClose }) => {
         <Text style={[styles.customLocalRadius, styles.kmTypo]}>
           Custom local radius
         </Text>
-        <Text style={[styles.km, styles.kmTypo]}>1km</Text>
+        <Text style={[styles.km, styles.kmTypo]}>{distance}km</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={1}
+          maximumValue={10}
+          value={distance}
+          step={1}
+          onValueChange={handleSliderChange}
+          minimumTrackTintColor="#FF4317"
+          maximumTrackTintColor="#E0E0E0"
+          thumbTintColor="#FF4317"
+        />
         <View style={styles.button}>
           <Text style={styles.title}>Apply</Text>
-        </View>
-        <View style={styles.component1}>
-          <View style={[styles.bottom, styles.topPosition1]} />
-          <View style={[styles.top, styles.topPosition]} />
-          <Image
-            style={[styles.component1Child, styles.iconLayout1]}
-            contentFit="cover"
-            source={require("../assets/ellipse-109.png")}
-          />
         </View>
       </View>
       <View style={[styles.rectangleParent, styles.component1ChildPosition]}>
@@ -271,6 +279,12 @@ const styles = StyleSheet.create({
     maxWidth: "100%",
     width: 375,
     justifyContent: "flex-end", // Add this line to align at the bottom
+  },
+  slider: {
+    width: 315,
+    height: 10,
+    marginTop: 60,
+    left: 10,
   },
 });
 
