@@ -1,9 +1,28 @@
 import * as React from "react";
-import { View, StyleSheet, Text } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { Color, FontFamily, Border, FontSize, Padding } from "../GlobalStyles";
+import { useState, useEffect } from 'react';
 
-const Budget = ({ onClose }) => {
+const Budget = ({ onClose, onBudgetSelect, selectedBudgetProp }) => {
+
+  const [selectedBudget, setSelectedBudget] = useState(null);
+  const [customBudget, setCustomBudget] = useState('');
+
+  useEffect(() => {
+    // Update the selectedBudget state when the prop changes
+    setSelectedBudget(selectedBudgetProp);
+  }, [selectedBudgetProp]);
+
+  const handleBudgetSelection = (budget) => {
+    setSelectedBudget(budget);
+  };
+
+  const handleApplyPress = () => {
+    onBudgetSelect(selectedBudget, customBudget); // Pass the selected budget to the parent component
+    onClose(); // Close the modal
+  };
+
   return (
     <View style={styles.budget}>
       <View style={[styles.groupParent, styles.parentPosition]}>
@@ -42,31 +61,57 @@ const Budget = ({ onClose }) => {
       <View style={styles.groupPosition}>
         <View style={[styles.groupChild, styles.groupPosition]} />
         <Text style={styles.spendingLimit}>Spending Limit</Text>
-        <View style={styles.button}>
-          <Text style={styles.title}>Apply</Text>
-        </View>
-        <View style={[styles.rectangleContainer, styles.rectangleLayout]}>
-          <View style={[styles.groupItem, styles.groupItemLayout]} />
-          <Text style={[styles.php, styles.phpTypo]}>1000 - 2000php</Text>
-        </View>
-        <View style={[styles.groupView, styles.groupViewPosition]}>
-          <View style={[styles.groupItem, styles.groupItemLayout]} />
-          <Text style={[styles.php, styles.phpTypo]}>Above 2000php</Text>
-        </View>
-        <View style={[styles.rectangleView, styles.groupItemLayout]} />
-        <Text style={[styles.customBudget, styles.groupViewPosition]}>
-          Custom Budget
-        </Text>
-      </View>
-      <View style={[styles.below500, styles.rectangleLayout]}>
-        <View style={[styles.rectangleParent, styles.parentPosition]}>
-          <View style={styles.below500Child} />
-          <Text style={[styles.below500php, styles.phpTypo]}>Below 500php</Text>
-        </View>
-      </View>
-      <View style={[styles.rectangleParent1, styles.rectangleLayout]}>
-        <View style={[styles.groupItem, styles.groupItemLayout]} />
-        <Text style={[styles.php1, styles.phpTypo]}>500 - 1000php</Text>
+                <View style={styles.spendContainer}>
+                  <TouchableOpacity
+                    style={[styles.bgtButton, selectedBudget === 'noFilter' && styles.bgtSelected]}
+                    onPress={() => handleBudgetSelection('noFilter')}>
+                    <Text style={[{color: '#ff4317'}, selectedBudget === 'noFilter' && {color: '#ffffff'}]}>No Filter</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.bgtButton, selectedBudget === 'low' && styles.bgtSelected]}
+                    onPress={() => handleBudgetSelection('low')}>
+                    <Text style={[{color: '#ff4317'}, selectedBudget === 'low' && {color: '#ffffff'}]}>Below 500php</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.bgtButton, selectedBudget === 'medium' && styles.bgtSelected]}
+                    onPress={() => handleBudgetSelection('medium')}>
+                    <Text style={[{color: '#ff4317'}, selectedBudget === 'medium' && {color: '#ffffff'}]}>500 - 1,000php</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.bgtButton, selectedBudget === 'high' && styles.bgtSelected]}
+                    onPress={() => handleBudgetSelection('high')}>
+                    <Text style={[{color: '#ff4317'}, selectedBudget === 'high' && {color: '#ffffff'}]}>1,000 - 2,000php</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.bgtButton, selectedBudget === 'super' && styles.bgtSelected]}
+                    onPress={() => handleBudgetSelection('super')}>
+                    <Text style={[{color: '#ff4317'}, selectedBudget === 'super' && {color: '#ffffff'}]}>Above 2,000php</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.bgtButton, selectedBudget === 'custom' && styles.bgtSelected]}
+                    onPress={() => handleBudgetSelection('custom')}>
+                    <Text style={[{color: '#ff4317'}, selectedBudget === 'custom' && {color: '#ffffff'}]}>Custom Budget</Text>
+                  </TouchableOpacity>
+                </View>
+
+              {selectedBudget === 'custom' && (
+                <TextInput
+                  style={styles.customBudgetInput}
+                  placeholder="Enter custom budget"
+                  value={customBudget}
+                  onChangeText={(text) => setCustomBudget(text)}
+                />
+              )}
+              <Pressable
+                style={[styles.button, styles.applyBtnClose]}
+                onPress={handleApplyPress}>
+                <Text style={styles.title}>Apply</Text>
+              </Pressable>
       </View>
     </View>
   );
@@ -116,6 +161,7 @@ const styles = StyleSheet.create({
     top: 0,
     position: "absolute",
     width: 375,
+    padding: 10,
   },
   rectangleLayout: {
     height: 40,
@@ -132,7 +178,6 @@ const styles = StyleSheet.create({
     fontSize: FontSize.size_xs,
     fontFamily: FontFamily.interMedium,
     fontWeight: "500",
-    lineHeight: 40,
     color: Color.colorOrangered,
     textAlign: "left",
   },
@@ -211,15 +256,10 @@ const styles = StyleSheet.create({
     backgroundColor: Color.colorWhitesmoke,
   },
   spendingLimit: {
-    top: 7,
-    left: 13,
     fontSize: FontSize.size_xl,
     color: Color.colorBlack,
     fontFamily: FontFamily.interMedium,
     fontWeight: "500",
-    lineHeight: 40,
-    textAlign: "left",
-    position: "absolute",
   },
   title: {
     fontSize: FontSize.size_base,
@@ -230,8 +270,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   button: {
-    top: 145,
-    left: 15,
+    
     borderRadius: Border.br_xl,
     backgroundColor: Color.colorOrangered,
     shadowColor: "rgba(190, 120, 103, 0.2)",
@@ -242,14 +281,12 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 20,
     shadowOpacity: 1,
-    width: 339,
+    width: "100%",
     height: 46,
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: Padding.p_13xl,
     paddingVertical: Padding.p_xs,
-    position: "absolute",
   },
   groupItem: {
     top: 6,
@@ -326,6 +363,30 @@ const styles = StyleSheet.create({
     maxWidth: "100%",
     width: 375,
     justifyContent: "flex-end",
+  },
+  spendContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  bgtButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    margin: 5,
+    borderWidth: 1,
+    borderRadius: 50,
+    borderWidth: 0,
+    backgroundColor: '#ffffff',
+    fontSize: FontSize.size_xs,
+  },
+  bgtSelected: {
+    backgroundColor: '#ff4317',
+  },
+  customBudgetInput: {
+    backgroundColor: '#ffffff',
+    margin: 10,
+    padding: 5,
+    borderRadius: 50,
   },
 });
 
