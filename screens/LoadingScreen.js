@@ -17,6 +17,8 @@ const LoadingScreen = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [radius, setRadius] = useState(1000); // Initial radius in meters
   const [nearbyRestaurants, setNearbyRestaurants] = useState([]);
+  const [selectedBudget, setSelectedBudget] = useState(null);
+  const [customBudget, setCustomBudget] = useState('');
 
   const apiKey = "AIzaSyDddbqZ2peQJYj1KTQJaUhyna4rfBmxtO0";
   const placesApiUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
@@ -49,18 +51,48 @@ const LoadingScreen = () => {
     setRadius(newRadius * 1000); // Convert km to meters
   }, []);
 
-  const fetchNearbyRestaurants = async (userLocation, radius) => {
+  const budgetToPriceLevelMap = {
+  'low': [0, 1], // Below 500php
+  'medium': [2], // 5 - 1k PHP
+  'high': [3], // 1k - 2k PHP
+  'super': [4], // Above 2kiao
+};
+
+  
+
+  const handleBudgetSelection = (selectedBudget, customBudget) => {
+    console.log("Selected Budget:", selectedBudget);  // Log the selected budget
+    if (selectedBudget === 'custom') {
+      console.log("Custom Budget Value:", customBudget);  // Log the custom budget value if custom budget is selected
+    }
+    setSelectedBudget(selectedBudget);
+    // Trigger a new fetch when the budget changes
+    fetchNearbyRestaurants(userLocation, radius, selectedBudget, customBudget);
+  };
+  
+  const fetchNearbyRestaurants = async (userLocation, radius, selectedBudget) => {
     try {
+      let priceLevels = [];
+      if (selectedBudget !== 'custom') {
+        priceLevels = budgetToPriceLevelMap[selectedBudget] || [];
+      }
       const response = await axios.get(placesApiUrl, {
         params: {
           location: `${userLocation.latitude},${userLocation.longitude}`,
           radius: radius,
           type: 'restaurant',
           key: apiKey,
+          ...(priceLevels.length > 0 && { priceLevels: priceLevels.join(',') })
         },
       });
-
-      const restaurants = response.data.results;
+      let restaurants = response.data.results;
+      
+      if (selectedBudget && budgetToPriceLevelMap[selectedBudget]) {
+        const allowedPriceLevels = budgetToPriceLevelMap[selectedBudget];
+        restaurants = restaurants.filter(restaurant =>
+          allowedPriceLevels.includes(restaurant.price_level)
+        );
+      }
       setNearbyRestaurants(restaurants);
     } catch (error) {
       console.error('Error fetching nearby restaurants:', error.message);
@@ -81,9 +113,10 @@ const LoadingScreen = () => {
       setUserLocation(location.coords);
 
       // Fetch nearby restaurants
-      await fetchNearbyRestaurants(location.coords, radius);
+      await fetchNearbyRestaurants(location.coords, radius, selectedBudget, customBudget);
     })();
-  }, [radius]);
+  }, [radius, selectedBudget, customBudget]);
+  
 
   return (
     <>
@@ -197,7 +230,8 @@ const LoadingScreen = () => {
             style={styles.groupContainer2Bg}
             onPress={closeGroupContainer2}
           />
-          <Budget onClose={closeGroupContainer2} />
+          <Budget onClose={closeGroupContainer2} onBudgetSelect={handleBudgetSelection} 
+            selectedBudgetProp={selectedBudget}/>
         </View>
       </Modal>
 
