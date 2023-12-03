@@ -1,153 +1,140 @@
-import * as React from "react";
-import { StyleSheet, View, Text, Pressable } from "react-native";
-import { Image } from "expo-image";
+// Cuisine.js
+
+import React from "react";
+import { StyleSheet, View, Text, Pressable, Image } from "react-native";
 import { Color, FontSize, FontFamily, Border } from "../GlobalStyles";
 
-const Cuisine = () => {
+const Cuisine = ({ onClose }) => {
+  const [selectedCuisine, setSelectedCuisine] = React.useState(null);
+  const [isCuisineVisible, setIsCuisineVisible] = React.useState(true);
+
+  const handlePress = (cuisine) => {
+    setSelectedCuisine(selectedCuisine === cuisine ? null : cuisine);
+    onClose(); // Close the Cuisine modal
+    // Filter nearby restaurants based on the selected cuisine
+    // You need to pass the necessary parameters to this function based on your context
+    // fetchNearbyRestaurants(userLocation, radius, selectedBudget, customBudget, cuisine);
+  };
+
+  const getButtonStyles = (cuisine) => ({
+    backgroundColor: selectedCuisine === cuisine ? "#FF4317" : "transparent",
+    borderColor: selectedCuisine === cuisine ? "transparent" : "#FF4317",
+  });
+
+  const getTextStyles = (cuisine) => ({
+    color: selectedCuisine === cuisine ? "#FFF" : "#FF4317",
+  });
+
+  const handleToggleCuisineVisibility = () => {
+    setIsCuisineVisible(!isCuisineVisible);
+  };
+
+  const cuisines = ["Filipino", "Chinese", "Spanish", "French", "American", "Japanese"];
+
   return (
     <View style={styles.cuisine}>
-      <View style={[styles.rectangleParent, styles.groupChildLayout]}>
-        <View style={[styles.groupChild, styles.groupChildLayout]} />
-        <Text style={styles.cuisineType}>Cuisine Type</Text>
-        <Pressable style={[styles.buttonFilipino, styles.buttonLayout]}>
-          <View style={styles.buttonFilipinoChild} />
-          <Text style={[styles.filipino, styles.chineseTypo]}>Filipino</Text>
-        </Pressable>
-        <Pressable style={[styles.buttonChinese, styles.buttonLayout]}>
-          <View style={styles.buttonFilipinoChild} />
-          <Text style={[styles.chinese, styles.chineseTypo]}>Chinese</Text>
-        </Pressable>
-        <Pressable style={[styles.buttonSpanish, styles.buttonPosition1]}>
-          <View style={styles.buttonFilipinoChild} />
-          <Text style={[styles.chinese, styles.chineseTypo]}>Spanish</Text>
-        </Pressable>
-        <Pressable style={[styles.buttonFrench, styles.buttonPosition]}>
-          <View style={styles.buttonFilipinoChild} />
-          <Text style={[styles.filipino, styles.chineseTypo]}>French</Text>
-        </Pressable>
-        <Pressable style={[styles.buttonAmerican, styles.buttonPosition]}>
-          <View style={styles.buttonFilipinoChild} />
-          <Text style={[styles.american, styles.chineseTypo]}>American</Text>
-        </Pressable>
-        <Pressable style={[styles.buttonJapanese, styles.buttonPosition1]}>
-          <View style={styles.buttonFilipinoChild} />
-          <Text style={[styles.american, styles.chineseTypo]}>Japanese</Text>
-        </Pressable>
-      </View>
-      <Image
-        style={styles.cancel1Icon}
-        contentFit="cover"
-        source={require("../assets/cancel-1.png")}
-      />
+      {isCuisineVisible && (
+        <View style={styles.rectangleParent}>
+          <View style={styles.groupChild}>
+            <Text style={styles.cuisineType}>Cuisine Type</Text>
+            <View style={styles.columnContainer}>
+              {cuisines.map((cuisine, index) => (
+                <Pressable
+                  key={cuisine}
+                  style={[
+                    styles.button,
+                    styles.buttonLayout,
+                    getButtonStyles(cuisine),
+                  ]}
+                  onPress={() => handlePress(cuisine)}
+                >
+                  <View style={styles.buttonInner}>
+                    <Text style={[styles.cuisineText, getTextStyles(cuisine)]}>
+                      {cuisine}
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+            <Pressable style={styles.cancelButton}>
+              <Image
+                style={styles.cancel1Icon}
+                resizeMode="cover"
+                source={require("../assets/cancel-1.png")}
+              />
+            </Pressable>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  groupChildLayout: {
-    height: 203,
-    width: 375,
-    position: "absolute",
+  cuisine: {
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonLayout: {
     height: 40,
-    width: 129,
-    left: 27,
-    position: "absolute",
+    width: "48%",
+    marginVertical: 5,
   },
-  chineseTypo: {
-    color: Color.colorOrangered,
-    fontSize: FontSize.size_xs,
-    top: "0%",
-    textAlign: "left",
+  button: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderRadius: Border.br_3xs,
+    marginVertical: 5,
+  },
+  buttonInner: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cuisineType: {
+    fontSize: FontSize.size_xl,
+    color: Color.colorBlack,
     fontFamily: FontFamily.interMedium,
     fontWeight: "500",
-    lineHeight: 40,
-    position: "absolute",
+    marginTop: 10,
+    marginLeft: 10,
+    marginBottom: 10,
+    textAlign: "left",
   },
-  buttonPosition1: {
-    left: 214,
-    height: 40,
-    width: 129,
-    position: "absolute",
+  cuisineText: {
+    fontSize: FontSize.size_xs,
+    fontFamily: FontFamily.interMedium,
+    fontWeight: "500",
   },
-  buttonPosition: {
-    top: 144,
-    height: 40,
-    width: 129,
+  rectangleParent: {
+    width: "95%",
+    height: "auto",
     position: "absolute",
+    top: 102, // Adjusted top value
   },
   groupChild: {
     top: 0,
     borderRadius: Border.br_3xs,
     backgroundColor: Color.colorWhitesmoke,
   },
-  cuisineType: {
-    top: 1,
-    left: 9,
-    fontSize: FontSize.size_xl,
-    color: Color.colorBlack,
-    textAlign: "left",
-    fontFamily: FontFamily.interMedium,
-    fontWeight: "500",
-    lineHeight: 40,
+  columnContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+  },
+  cancelButton: {
     position: "absolute",
-  },
-  buttonFilipinoChild: {
-    height: "77.5%",
-    top: "10%",
-    right: "0%",
-    bottom: "12.5%",
-    left: "0%",
-    borderRadius: Border.br_mini,
-    backgroundColor: Color.lightColorBaseTertiaryLight,
-    position: "absolute",
-    width: "100%",
-  },
-  filipino: {
-    left: "34.11%",
-  },
-  buttonFilipino: {
-    top: 49,
-  },
-  chinese: {
-    left: "31.78%",
-  },
-  buttonChinese: {
-    top: 96,
-  },
-  buttonSpanish: {
-    top: 96,
-  },
-  buttonFrench: {
-    left: 27,
-    top: 144,
-  },
-  american: {
-    left: "28.68%",
-  },
-  buttonAmerican: {
-    left: 216,
-  },
-  buttonJapanese: {
-    top: 49,
-  },
-  rectangleParent: {
-    top: 102,
+    top: 4,
+    right: 15,
+    padding: 10,
   },
   cancel1Icon: {
-    top: 111,
-    left: 333,
     width: 24,
     height: 24,
-    position: "absolute",
-  },
-  cuisine: {
-    flex: 1,
-    height: 236,
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
   },
 });
 

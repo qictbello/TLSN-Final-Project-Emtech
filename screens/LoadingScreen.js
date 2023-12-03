@@ -1,12 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Image } from "react-native";
+import { Image, Modal, StyleSheet, Text, View, Pressable } from "react-native";
 import MapView, { Marker, Circle } from "react-native-maps";
 import * as Location from "expo-location";
 import axios from "axios";
-import { StyleSheet, Text, View, Pressable, Modal } from "react-native";
+import Cuisine from "../components/Cuisine";
 import Budget from "../components/Budget";
 import AdvancedRadius from "../components/AdvancedRadius";
-import Cuisine from "../components/Cuisine";
 import { Color, FontFamily } from "../GlobalStyles";
 import Config from 'react-native-config';
 
@@ -19,6 +18,7 @@ const LoadingScreen = () => {
   const [nearbyRestaurants, setNearbyRestaurants] = useState([]);
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [customBudget, setCustomBudget] = useState('');
+  const [selectedCuisine, setSelectedCuisine] = useState(null);
 
   const apiKey = "AIzaSyDddbqZ2peQJYj1KTQJaUhyna4rfBmxtO0";
   const placesApiUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
@@ -52,25 +52,23 @@ const LoadingScreen = () => {
   }, []);
 
   const budgetToPriceLevelMap = {
-  'low': [0, 1], // Below 500php
-  'medium': [2], // 5 - 1k PHP
-  'high': [3], // 1k - 2k PHP
-  'super': [4], // Above 2kiao
-};
-
-  
+    'low': [0, 1], // Below 500php
+    'medium': [2], // 5 - 1k PHP
+    'high': [3], // 1k - 2k PHP
+    'super': [4], // Above 2k
+  };
 
   const handleBudgetSelection = (selectedBudget, customBudget) => {
-    console.log("Selected Budget:", selectedBudget);  // Log the selected budget
+    console.log("Selected Budget:", selectedBudget);
     if (selectedBudget === 'custom') {
-      console.log("Custom Budget Value:", customBudget);  // Log the custom budget value if custom budget is selected
+      console.log("Custom Budget Value:", customBudget);
     }
     setSelectedBudget(selectedBudget);
     // Trigger a new fetch when the budget changes
-    fetchNearbyRestaurants(userLocation, radius, selectedBudget, customBudget);
+    fetchNearbyRestaurants(userLocation, radius, selectedBudget, customBudget, selectedCuisine);
   };
-  
-  const fetchNearbyRestaurants = async (userLocation, radius, selectedBudget) => {
+
+  const fetchNearbyRestaurants = async (userLocation, radius, selectedBudget, customBudget, selectedCuisine) => {
     try {
       let priceLevels = [];
       if (selectedBudget !== 'custom') {
@@ -82,11 +80,12 @@ const LoadingScreen = () => {
           radius: radius,
           type: 'restaurant',
           key: apiKey,
+          keyword: selectedCuisine,
           ...(priceLevels.length > 0 && { priceLevels: priceLevels.join(',') })
         },
       });
       let restaurants = response.data.results;
-      
+
       if (selectedBudget && budgetToPriceLevelMap[selectedBudget]) {
         const allowedPriceLevels = budgetToPriceLevelMap[selectedBudget];
         restaurants = restaurants.filter(restaurant =>
@@ -113,10 +112,9 @@ const LoadingScreen = () => {
       setUserLocation(location.coords);
 
       // Fetch nearby restaurants
-      await fetchNearbyRestaurants(location.coords, radius, selectedBudget, customBudget);
+      await fetchNearbyRestaurants(location.coords, radius, selectedBudget, customBudget, selectedCuisine);
     })();
-  }, [radius, selectedBudget, customBudget]);
-  
+  }, [radius, selectedBudget, customBudget, selectedCuisine]);
 
   return (
     <>
@@ -219,6 +217,7 @@ const LoadingScreen = () => {
       <Modal animationType="fade" transparent visible={groupContainer4Visible}>
         <View style={styles.groupContainer4Overlay}>
           <Pressable onPress={closeGroupContainer4}>
+            {/* Pass the onClose prop to handle closing the modal */}
             <Cuisine onClose={closeGroupContainer4} />
           </Pressable>
         </View>
