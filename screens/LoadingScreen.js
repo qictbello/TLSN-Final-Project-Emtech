@@ -86,18 +86,23 @@ const LoadingScreen = () => {
       if (selectedBudget !== 'custom') {
         priceLevels = budgetToPriceLevelMap[selectedBudget] || [];
       }
-      const response = await axios.get(placesApiUrl, {
-        params: {
-          location: `${userLocation.latitude},${userLocation.longitude}`,
-          radius: radius,
-          type: 'restaurant',
-          key: apiKey,
-          keyword: selectedCuisine,
-          ...(priceLevels.length > 0 && { priceLevels: priceLevels.join(',') })
-        },
-      });
-      let restaurants = response.data.results;
-
+      let restaurants = [];
+      let nextPageToken = null;
+      do {
+        const response = await axios.get(placesApiUrl, {
+          params: {
+            location: `${userLocation.latitude},${userLocation.longitude}`,
+            radius: radius,
+            type: 'restaurant',
+            key: apiKey,
+            keyword: selectedCuisine,
+            ...(priceLevels.length > 0 && { priceLevels: priceLevels.join(',') }),
+            ...(nextPageToken && { pagetoken: nextPageToken })
+          },
+        });
+        restaurants = [...restaurants, ...response.data.results];
+        nextPageToken = response.data.next_page_token;
+      } while (nextPageToken);
       if (selectedBudget && budgetToPriceLevelMap[selectedBudget]) {
         const allowedPriceLevels = budgetToPriceLevelMap[selectedBudget];
         restaurants = restaurants.filter(restaurant =>
@@ -128,7 +133,7 @@ const LoadingScreen = () => {
     })();
     if (mapRef === null) {
       // Corrected line to set the reference correctly
-      setMapRef(mapView);
+      setMapRef(mapRef);
     }
   }, [radius, selectedBudget, customBudget, selectedCuisine]);
 
