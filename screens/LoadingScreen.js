@@ -166,8 +166,6 @@ const LoadingScreen = () => {
     }
   };
   
-  
-  
   const openGoogleMaps = () => {
     if (selectedRestaurant && selectedRestaurant.name) {
       const restaurantName = encodeURIComponent(selectedRestaurant.name);

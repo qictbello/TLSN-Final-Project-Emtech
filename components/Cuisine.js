@@ -1,20 +1,29 @@
-// Cuisine.js
-
-import React from "react";
-import { StyleSheet, View, Text, Pressable, Image } from "react-native";
+import React, { useState } from "react";
+import { StyleSheet, View, Text, Pressable, Image, FlatList } from "react-native";
 import { Color, FontSize, FontFamily, Border } from "../GlobalStyles";
 
 const Cuisine = ({ onClose }) => {
-  const [selectedCuisine, setSelectedCuisine] = React.useState(null);
-  const [isCuisineVisible, setIsCuisineVisible] = React.useState(true);
+  const [selectedCuisine, setSelectedCuisine] = useState(null);
 
   const handlePress = (cuisine) => {
     setSelectedCuisine(selectedCuisine === cuisine ? null : cuisine);
-    onClose(); // Close the Cuisine modal
-    // Filter nearby restaurants based on the selected cuisine
-    // You need to pass the necessary parameters to this function based on your context
-    // fetchNearbyRestaurants(userLocation, radius, selectedBudget, customBudget, cuisine);
   };
+
+  const renderItem = ({ item }) => (
+    <Pressable
+      style={[
+        styles.button,
+        getButtonStyles(item),
+      ]}
+      onPress={() => handlePress(item)}
+    >
+      <View style={styles.buttonInner}>
+        <Text style={[styles.cuisineText, getTextStyles(item)]}>
+          {item}
+        </Text>
+      </View>
+    </Pressable>
+  );
 
   const getButtonStyles = (cuisine) => ({
     backgroundColor: selectedCuisine === cuisine ? "#FF4317" : "transparent",
@@ -25,52 +34,29 @@ const Cuisine = ({ onClose }) => {
     color: selectedCuisine === cuisine ? "#FFF" : "#FF4317",
   });
 
-  const handleToggleCuisineVisibility = () => {
-    setIsCuisineVisible(!isCuisineVisible);
-  };
-
   const cuisines = ["Filipino", "Chinese", "Spanish", "French", "American", "Japanese"];
 
   return (
     <View style={styles.cuisine}>
-      {isCuisineVisible && (
-        <View style={styles.rectangleParent}>
-          <View style={styles.groupChild}>
-            <Text style={styles.cuisineType}>Cuisine Type</Text>
-            <View style={styles.columnContainer}>
-              {cuisines.map((cuisine, index) => (
-                <Pressable
-                  key={cuisine}
-                  style={[
-                    styles.button,
-                    styles.buttonLayout,
-                    getButtonStyles(cuisine),
-                  ]}
-                  onPress={() => handlePress(cuisine)}
-                >
-                  <View style={styles.buttonInner}>
-                    <Text style={[styles.cuisineText, getTextStyles(cuisine)]}>
-                      {cuisine}
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
-            </View>
-            <Pressable
-              style={styles.cancelButton}
-              onPress={() => {
-                onClose(); // Close the Cuisine modal
-              }}
-            >
-              <Image
-                style={styles.cancel1Icon}
-                resizeMode="cover"
-                source={require("../assets/cancel-1.png")}
-              />
-            </Pressable>
-          </View>
-        </View>
-      )}
+      <View style={styles.rectangleParent}>
+        <Pressable
+          style={styles.cancelButton}
+          onPress={onClose}
+        >
+          <Image
+            style={styles.cancel1Icon}
+            resizeMode="cover"
+            source={require("../assets/cancel-1.png")}
+          />
+        </Pressable>
+        <FlatList
+          data={cuisines}
+          renderItem={renderItem}
+          keyExtractor={(item) => item}
+          numColumns={2}
+          columnWrapperStyle={styles.columnContainer}
+        />
+      </View>
     </View>
   );
 };
@@ -82,32 +68,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  buttonLayout: {
-    height: 40,
-    width: "48%",
-    marginVertical: 5,
-  },
   button: {
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
     borderRadius: Border.br_3xs,
     marginVertical: 5,
+    height: 40,
+    width: "48%",
   },
   buttonInner: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-  },
-  cuisineType: {
-    fontSize: FontSize.size_xl,
-    color: Color.colorBlack,
-    fontFamily: FontFamily.interMedium,
-    fontWeight: "500",
-    marginTop: 10,
-    marginLeft: 10,
-    marginBottom: 10,
-    textAlign: "left",
   },
   cuisineText: {
     fontSize: FontSize.size_xs,
@@ -118,11 +91,10 @@ const styles = StyleSheet.create({
     width: "95%",
     height: "auto",
     position: "absolute",
-    top: 102, // Adjusted top value
-  },
-  groupChild: {
-    top: 0,
+    top: 100,
     borderRadius: Border.br_3xs,
+    borderTopWidth: 40, // Add a top border
+    borderColor: Color.colorWhitesmoke, // Specify the border color
     backgroundColor: Color.colorWhitesmoke,
   },
   columnContainer: {
@@ -133,7 +105,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     position: "absolute",
-    top: 4,
+    top: -40,
     right: 15,
     padding: 10,
   },
