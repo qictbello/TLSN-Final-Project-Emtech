@@ -10,7 +10,6 @@ const Budget = ({ onClose, onBudgetSelect, selectedBudgetProp }) => {
   const [customBudget, setCustomBudget] = useState('');
 
   useEffect(() => {
-    // Update the selectedBudget state when the prop changes
     setSelectedBudget(selectedBudgetProp);
   }, [selectedBudgetProp]);
 
@@ -19,8 +18,8 @@ const Budget = ({ onClose, onBudgetSelect, selectedBudgetProp }) => {
   };
 
   const handleApplyPress = () => {
-    onBudgetSelect(selectedBudget, customBudget); // Pass the selected budget to the parent component
-    onClose(); // Close the modal
+    onBudgetSelect(selectedBudget, customBudget);
+    onClose();
   };
 
   return (

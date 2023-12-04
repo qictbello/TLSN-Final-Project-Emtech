@@ -157,7 +157,6 @@ const LoadingScreen = () => {
       }
       let location = await Location.getCurrentPositionAsync({});
       setUserLocation(location.coords);
-      // Fetch nearby restaurants
       await fetchNearbyRestaurants(location.coords, radius, selectedBudget, customBudget, selectedCuisine);
     })();
     if (mapRef === null) {
@@ -168,11 +167,11 @@ const LoadingScreen = () => {
   const openGoogleMapsInModal = () => {
     console.log("Selected Restaurant:", selectedRestaurant);
     if (selectedRestaurant && selectedRestaurant.geometry && selectedRestaurant.geometry.location) {
-      const { lat, lng } = selectedRestaurant.geometry.location; // Change here
+      const { lat, lng } = selectedRestaurant.geometry.location;
       console.log("Latitude:", lat, "Longitude:", lng);
       const url = Platform.select({
-        ios: `maps://app?saddr=Current%20Location&daddr=${lat},${lng}`, // Change here
-        android: `google.navigation:q=${lat},${lng}`, // Change here
+        ios: `maps://app?saddr=Current%20Location&daddr=${lat},${lng}`,
+        android: `google.navigation:q=${lat},${lng}`,
       });
       console.log("Opening URL:", url);
       Linking.openURL(url);

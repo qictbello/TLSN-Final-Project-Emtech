@@ -94,8 +94,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 100,
     borderRadius: Border.br_3xs,
-    borderTopWidth: 40, // Add a top border
-    borderColor: Color.colorWhitesmoke, // Specify the border color
+    borderTopWidth: 40,
+    borderColor: Color.colorWhitesmoke,
     backgroundColor: Color.colorWhitesmoke,
   },
   columnContainer: {

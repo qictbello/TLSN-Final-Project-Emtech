@@ -5,16 +5,15 @@ import { Image } from "react-native";
 import { Color, FontFamily, Border, FontSize, Padding } from "../GlobalStyles";
 
 const AdvancedRadius = ({ onClose, onApply }) => {
-  const [distance, setDistance] = useState(1); // Initial distance value
+  const [distance, setDistance] = useState(1);
 
   const handleSliderChange = (value) => {
     setDistance(value);
   };
 
   const handleApplyPress = () => {
-    // Pass the selected distance to the parent component
     onApply(distance);
-    onClose(); // Close the modal
+    onClose();
   };
 
   return (
@@ -285,7 +284,7 @@ const styles = StyleSheet.create({
     maxHeight: "100%",
     maxWidth: "100%",
     width: 375,
-    justifyContent: "flex-end", // Add this line to align at the bottom
+    justifyContent: "flex-end",
   },
   slider: {
     width: 315,
