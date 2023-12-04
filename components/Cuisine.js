@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { StyleSheet, View, Text, Pressable, Image, FlatList } from "react-native";
 import { Color, FontSize, FontFamily, Border } from "../GlobalStyles";
 
-const Cuisine = ({ onClose }) => {
+const Cuisine = ({ onClose, onCuisineSelect }) => {
   const [selectedCuisine, setSelectedCuisine] = useState(null);
 
   const handlePress = (cuisine) => {
     setSelectedCuisine(selectedCuisine === cuisine ? null : cuisine);
+    onCuisineSelect(selectedCuisine === cuisine ? null : cuisine);
   };
 
   const renderItem = ({ item }) => (
