@@ -1,25 +1,35 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Image, Modal, StyleSheet, Text, View, Pressable } from "react-native";
-import MapView, { Marker, Circle } from "react-native-maps";
+import {
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  Linking,
+  Platform,
+} from "react-native";
+import MapView, { Marker, Circle, Callout } from "react-native-maps";
 import * as Location from "expo-location";
 import axios from "axios";
 import Cuisine from "../components/Cuisine";
 import Budget from "../components/Budget";
 import AdvancedRadius from "../components/AdvancedRadius";
 import { Color, FontFamily } from "../GlobalStyles";
-import Config from 'react-native-config';
 
 const LoadingScreen = () => {
   const [groupContainer2Visible, setGroupContainer2Visible] = useState(false);
   const [groupContainer3Visible, setGroupContainer3Visible] = useState(false);
   const [groupContainer4Visible, setGroupContainer4Visible] = useState(false);
+  const [restaurantDetailsModalVisible, setRestaurantDetailsModalVisible] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
-  const [radius, setRadius] = useState(1000); // Initial radius in meters
+  const [radius, setRadius] = useState(1000);
   const [nearbyRestaurants, setNearbyRestaurants] = useState([]);
   const [selectedBudget, setSelectedBudget] = useState(null);
-  const [customBudget, setCustomBudget] = useState('');
+  const [customBudget, setCustomBudget] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState(null);
   const [mapRef, setMapRef] = useState(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
   const apiKey = "AIzaSyDddbqZ2peQJYj1KTQJaUhyna4rfBmxtO0";
   const placesApiUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
@@ -137,6 +147,48 @@ const LoadingScreen = () => {
     }
   }, [radius, selectedBudget, customBudget, selectedCuisine]);
 
+  const openGoogleMapsInModal = () => {
+    console.log("Selected Restaurant:", selectedRestaurant);
+  
+    if (selectedRestaurant && selectedRestaurant.geometry && selectedRestaurant.geometry.location) {
+      const { lat, lng } = selectedRestaurant.geometry.location; // Change here
+      console.log("Latitude:", lat, "Longitude:", lng);
+  
+      const url = Platform.select({
+        ios: `maps://app?saddr=Current%20Location&daddr=${lat},${lng}`, // Change here
+        android: `google.navigation:q=${lat},${lng}`, // Change here
+      });
+  
+      console.log("Opening URL:", url);
+      Linking.openURL(url);
+    } else {
+      console.warn("Selected restaurant is not valid for navigation.");
+    }
+  };
+  
+  
+  
+  const openGoogleMaps = () => {
+    if (selectedRestaurant && selectedRestaurant.name) {
+      const restaurantName = encodeURIComponent(selectedRestaurant.name);
+      const url = Platform.select({
+        ios: `maps://app?q=${restaurantName}`,
+        android: `https://www.google.com/maps/search/?api=1&query=${restaurantName}`,
+      });
+      Linking.openURL(url);
+    }
+  };
+  
+  const openRestaurantDetailsModal = useCallback((restaurant) => {
+    setSelectedRestaurant(restaurant);
+    setRestaurantDetailsModalVisible(true);
+  }, []);
+
+  const closeRestaurantDetailsModal = useCallback(() => {
+    setSelectedRestaurant(null);
+    setRestaurantDetailsModalVisible(false);
+  }, []);
+
   return (
     <>
       <View style={styles.loadingScreen}>
@@ -174,17 +226,25 @@ const LoadingScreen = () => {
           )}
 
           {/* Display nearby restaurants as markers on the map */}
-          {nearbyRestaurants.map((restaurant) => (
-            <Marker
-              key={restaurant.place_id}
-              coordinate={{
-                latitude: restaurant.geometry.location.lat,
-                longitude: restaurant.geometry.location.lng,
-              }}
-              title={restaurant.name}
-              description={restaurant.vicinity}
-            />
-          ))}
+        {nearbyRestaurants.map((restaurant) => (
+          <Marker
+            key={restaurant.place_id}
+            coordinate={{
+              latitude: restaurant.geometry.location.lat,
+              longitude: restaurant.geometry.location.lng,
+            }}
+            title={restaurant.name}
+            description={restaurant.vicinity}
+            onPress={() => openRestaurantDetailsModal(restaurant)}
+          >
+            <Callout>
+              <View>
+                <Text>{restaurant.name}</Text>
+                <Text>{restaurant.vicinity}</Text>
+              </View>
+            </Callout>
+          </Marker>
+        ))}
         </MapView>
 
         <View style={[styles.groupParent, styles.parentPosition]}>
@@ -235,6 +295,42 @@ const LoadingScreen = () => {
           />
         </Pressable>
       </View>
+
+      <Modal
+          animationType="slide"
+          transparent={true}
+          visible={restaurantDetailsModalVisible}
+          onRequestClose={closeRestaurantDetailsModal}
+        >
+          <Pressable
+            style={styles.modalContainer}
+            onPress={closeRestaurantDetailsModal}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.restaurantDetailsTitle}>
+                {selectedRestaurant?.name}
+              </Text>
+              <Text style={styles.restaurantDetailsAddress}>
+                {selectedRestaurant?.vicinity}
+              </Text>
+              
+              {/* Navigate to Google Maps button */}
+              <Pressable onPress={openGoogleMapsInModal}>
+                <Text style={{ color: Color.colorOrangered }}>Navigate to Google Maps</Text>
+              </Pressable>
+
+              {/* Go to Google Maps button */}
+              <Pressable onPress={openGoogleMaps}>
+                <Text style={{ color: Color.colorOrangered }}>Go to Google Maps</Text>
+              </Pressable>
+
+              {/* Close button */}
+              <Pressable onPress={closeRestaurantDetailsModal}>
+                <Text style={{ color: Color.colorOrangered }}>Close</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Modal>
 
       <Modal animationType="fade" transparent visible={groupContainer4Visible}>
         <View style={styles.groupContainer4Overlay}>
@@ -428,6 +524,39 @@ const styles = StyleSheet.create({
     width: 375,
     height: 56,
     zIndex: 1,
+  },
+  restaurantDetailsModal: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.2)", // Adjust the opacity as needed
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 16,
+    borderRadius: 8,
+    width: "80%",
+  },
+  restaurantDetailsTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  restaurantImage: {
+    width: "100%",
+    height: 150,
+    marginBottom: 8,
+    borderRadius: 8,
+  },
+  restaurantDetailsAddress: {
+    fontSize: 16,
+    marginBottom: 16,
   },
 });
 
