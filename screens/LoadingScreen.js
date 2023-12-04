@@ -159,10 +159,13 @@ const LoadingScreen = () => {
       setUserLocation(location.coords);
       await fetchNearbyRestaurants(location.coords, radius, selectedBudget, customBudget, selectedCuisine);
     })();
+    if (userLocation && mapRef) {
+      centerMapViewToUserLocation();
+    }
     if (mapRef === null) {
       setMapRef(mapRef);
     }
-  }, [radius, selectedBudget, customBudget, selectedCuisine]);
+  }, [userLocation, radius, selectedBudget, customBudget, selectedCuisine]);
 
   const openGoogleMapsInModal = () => {
     console.log("Selected Restaurant:", selectedRestaurant);
