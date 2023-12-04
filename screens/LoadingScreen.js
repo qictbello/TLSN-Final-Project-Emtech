@@ -19,6 +19,7 @@ const LoadingScreen = () => {
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [customBudget, setCustomBudget] = useState('');
   const [selectedCuisine, setSelectedCuisine] = useState(null);
+  const [mapRef, setMapRef] = useState(null);
 
   const apiKey = "AIzaSyDddbqZ2peQJYj1KTQJaUhyna4rfBmxtO0";
   const placesApiUrl = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
@@ -68,6 +69,17 @@ const LoadingScreen = () => {
     fetchNearbyRestaurants(userLocation, radius, selectedBudget, customBudget, selectedCuisine);
   };
 
+  const centerMapViewToUserLocation = useCallback(() => {
+    if (userLocation && mapRef) {
+      mapRef.animateToRegion({
+        latitude: userLocation.latitude,
+        longitude: userLocation.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
+    }
+  }, [userLocation, mapRef]);
+
   const fetchNearbyRestaurants = async (userLocation, radius, selectedBudget, customBudget, selectedCuisine) => {
     try {
       let priceLevels = [];
@@ -114,12 +126,17 @@ const LoadingScreen = () => {
       // Fetch nearby restaurants
       await fetchNearbyRestaurants(location.coords, radius, selectedBudget, customBudget, selectedCuisine);
     })();
+    if (mapRef === null) {
+      // Corrected line to set the reference correctly
+      setMapRef(mapView);
+    }
   }, [radius, selectedBudget, customBudget, selectedCuisine]);
 
   return (
     <>
       <View style={styles.loadingScreen}>
         <MapView
+          ref={(ref) => setMapRef(ref)}
           style={{ flex: 1, zIndex: 0 }}
           initialRegion={{
             latitude: userLocation?.latitude || 0,
@@ -172,14 +189,14 @@ const LoadingScreen = () => {
               contentFit="cover"
               source={require("../assets/rectangle.png")}
             />
-            <View style={[styles.group, styles.groupPosition]}>
-              <Text style={styles.news}>Nearby</Text>
-              <Image
-                style={[styles.nearbyIcon, styles.iconLayout1]}
-                contentFit="cover"
-                source={require("../assets/nearby1.png")}
-              />
-            </View>
+            <Pressable onPress={centerMapViewToUserLocation} style={[styles.group, styles.groupPosition]}>
+            <Text style={styles.news}>Nearby</Text>
+            <Image
+              style={[styles.nearbyIcon, styles.iconLayout1]}
+              contentFit="cover"
+              source={require("../assets/nearby1.png")}
+            />
+            </Pressable>
           </View>
           <Pressable
             style={[styles.orderParent, styles.groupPosition]}

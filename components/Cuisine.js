@@ -56,7 +56,12 @@ const Cuisine = ({ onClose }) => {
                 </Pressable>
               ))}
             </View>
-            <Pressable style={styles.cancelButton}>
+            <Pressable
+              style={styles.cancelButton}
+              onPress={() => {
+                onClose(); // Close the Cuisine modal
+              }}
+            >
               <Image
                 style={styles.cancel1Icon}
                 resizeMode="cover"
